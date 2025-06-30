@@ -1,0 +1,4 @@
+admin,admin@example.com,admin123
+john,john@example.com,password123
+jane,jane@example.com,mypassword
+abc,abc@gmail.com,123456

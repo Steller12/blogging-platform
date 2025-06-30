@@ -1,21 +1,165 @@
 {% extends "base.html" %}
+
+{% block title %}{{ page_title }} - Flask Blog{% endblock %}
+
 {% block content %}
-  <h1>{{ title }}</h1>
-  <form method="post">
-    <label>Title<br>
-      <input type="text" name="title" value="{{ post.title if post else '' }}" required>
-    </label><br><br>
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('posts.show_posts') }}">Posts</a></li>
+                <li class="breadcrumb-item active">{{ page_title }}</li>
+            </ol>
+        </nav>
 
-    <label>Body<br>
-      <textarea name="body" rows="10" required>{{ post.body if post else '' }}</textarea>
-    </label><br><br>
+        <div class="card">
+            <div class="card-header">
+                <h2>{{ page_title }}</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        <span class="text-danger">*</span>
+                        {{ form.title(class="form-control", maxlength="200") }}
+                        {% if form.title.errors %}
+                            <div class="text-danger">
+                                {% for error in form.title.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <span id="title-count">0</span>/200 characters
+                        </div>
+                    </div>
 
-    <label>
-      <input type="checkbox" name="is_published"
-             {% if post and post.is_published %}checked{% endif %}>
-      Publish immediately
-    </label><br><br>
+                    <div class="mb-3">
+                        {{ form.body.label(class="form-label") }}
+                        <span class="text-danger">*</span>
+                        {{ form.body(class="form-control", rows="10", placeholder="Write your blog post content here...") }}
+                        {% if form.body.errors %}
+                            <div class="text-danger">
+                                {% for error in form.body.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <span id="body-count">0</span> characters | <span id="word-count">0</span> words
+                        </div>
+                    </div>
 
-    <button type="submit">Save</button>
-  </form>
+                    <!-- Tags selection -->
+                    {% if form.tags.choices %}
+                    <div class="mb-3">
+                        {{ form.tags.label(class="form-label") }}
+                        <div class="form-text mb-2">Select tags for this post:</div>
+                        <div class="row">
+                            {% for choice in form.tags.choices %}
+                            <div class="col-md-4 col-sm-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="tags" 
+                                           value="{{ choice[0] }}" id="tag_{{ choice[0] }}"
+                                           {% if choice[0] in form.tags.data %}checked{% endif %}>
+                                    <label class="form-check-label" for="tag_{{ choice[0] }}">
+                                        #{{ choice[1] }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.tags.errors %}
+                            <div class="text-danger">
+                                {% for error in form.tags.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_published(class="form-check-input") }}
+                            {{ form.is_published.label(class="form-check-label") }}
+                            {% if form.is_published.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.is_published.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Uncheck to save as draft. You can publish it later.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('posts.show_posts') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> 
+                            {% if post %}Update Post{% else %}Create Post{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if post %}
+        <div class="mt-3">
+            <small class="text-muted">
+                Created: {{ post.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                {% if post.updated_at != post.created_at %}
+                    | Last updated: {{ post.updated_at.strftime('%B %d, %Y at %I:%M %p') }}
+                {% endif %}
+                {% if post.author %}
+                    | Author: {{ post.author.username }}
+                {% endif %}
+            </small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Character counting functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('title');
+    const bodyInput = document.getElementById('body');
+    const titleCount = document.getElementById('title-count');
+    const bodyCount = document.getElementById('body-count');
+    const wordCount = document.getElementById('word-count');
+
+    function updateTitleCount() {
+        const count = titleInput.value.length;
+        titleCount.textContent = count;
+        titleCount.className = count > 180 ? 'text-warning' : count >= 200 ? 'text-danger' : '';
+    }
+
+    function updateBodyCount() {
+        const text = bodyInput.value;
+        const charCount = text.length;
+        const words = text.trim().length > 0 ? text.trim().split(/\s+/).length : 0;
+        
+        bodyCount.textContent = charCount;
+        wordCount.textContent = words;
+    }
+
+    if (titleInput) {
+        titleInput.addEventListener('input', updateTitleCount);
+        updateTitleCount();
+    }
+    
+    if (bodyInput) {
+        bodyInput.addEventListener('input', updateBodyCount);
+        updateBodyCount();
+    }
+});
+</script>
 {% endblock %}
