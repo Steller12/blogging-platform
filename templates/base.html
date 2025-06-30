@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ title or "Blog" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <nav>
+    <a href="{{ url_for('posts.show_posts') }}">Home</a>
+    <a href="{{ url_for('posts.new_post') }}">New Post</a>
+    <a href="{{ url_for('posts.drafts') }}">Drafts</a>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <p class="flash-{{ category }}">{{ msg }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</body>
+</html>

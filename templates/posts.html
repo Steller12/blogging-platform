@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ title }}</h1>
+
+  {% if posts %}
+    {% for post in posts %}
+      <div class="card">
+        <h2><a href="{{ url_for('posts.post_detail', post_id=post.id) }}">{{ post.title }}</a></h2>
+        <p>{{ post.body[:150] }}{% if post.body|length > 150 %}…{% endif %}</p>
+        {% if not post.is_published %}
+          <em>(draft)</em>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No posts yet.</p>
+  {% endif %}
+{% endblock %}

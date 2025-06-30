@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ title }}</h1>
+  <form method="post">
+    <label>Title<br>
+      <input type="text" name="title" value="{{ post.title if post else '' }}" required>
+    </label><br><br>
+
+    <label>Body<br>
+      <textarea name="body" rows="10" required>{{ post.body if post else '' }}</textarea>
+    </label><br><br>
+
+    <label>
+      <input type="checkbox" name="is_published"
+             {% if post and post.is_published %}checked{% endif %}>
+      Publish immediately
+    </label><br><br>
+
+    <button type="submit">Save</button>
+  </form>
+{% endblock %}
